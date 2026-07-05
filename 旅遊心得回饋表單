@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅遊心得回饋表單 - TechNova</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(135deg,#f0f4ff,#e8f7f0);min-height:100vh;padding:20px;display:flex;justify-content:center}
+  .card{max-width:480px;width:100%;background:#fff;border-radius:20px;padding:28px 22px;box-shadow:0 8px 30px rgba(0,0,0,0.08);height:fit-content}
+  h1{font-size:19px;font-weight:900;color:#1a2b4c;margin-bottom:6px}
+  .sub{font-size:12.5px;color:#64748b;margin-bottom:22px;line-height:1.6}
+  label{display:block;font-size:13px;font-weight:700;color:#1a2b4c;margin-bottom:6px;margin-top:16px}
+  select,input[type=text],textarea{width:100%;padding:11px 13px;border:1.5px solid #dde5f0;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fafcff}
+  select:focus,input:focus,textarea:focus{border-color:#63b3ed}
+  textarea{min-height:120px;resize:vertical;line-height:1.6}
+  .stars{display:flex;gap:6px;margin-top:4px}
+  .star{font-size:26px;cursor:pointer;color:#dde5f0;user-select:none;transition:color .15s}
+  .star.active{color:#ffb020}
+  .hint{font-size:11px;color:#94a3b8;margin-top:5px}
+  .submit-btn{width:100%;margin-top:24px;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+  .submit-btn:disabled{opacity:0.6;cursor:default}
+  .msg{margin-top:14px;font-size:13px;text-align:center;padding:10px;border-radius:10px;display:none}
+  .msg.ok{background:rgba(46,204,113,0.1);color:#1e8449;display:block}
+  .msg.err{background:rgba(231,76,60,0.1);color:#c0392b;display:block}
+  .note{font-size:11px;color:#94a3b8;margin-top:18px;line-height:1.7;background:#f8fafc;border-radius:10px;padding:10px 12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>✈️ 旅遊心得回饋表單</h1>
+  <div class="sub">感謝您參加 TechNova 的旅遊行程！請分享您這趟旅程的真實心得，不論滿意或有待改進之處，都歡迎誠實填寫。填寫後將由專人確認內容後刊登於官網。</div>
+
+  <label>參加的行程 *</label>
+  <select id="trip-select">
+    <option value="">請選擇行程</option>
+  </select>
+
+  <label>您的稱呼 *</label>
+  <input type="text" id="traveler-name" placeholder="例如：陳小姐、王先生">
+
+  <label>整體評價</label>
+  <div class="stars" id="star-rating">
+    <span class="star" data-v="1">★</span>
+    <span class="star" data-v="2">★</span>
+    <span class="star" data-v="3">★</span>
+    <span class="star" data-v="4">★</span>
+    <span class="star" data-v="5">★</span>
+  </div>
+
+  <label>心得內容 *</label>
+  <textarea id="content" placeholder="請分享行程安排、住宿、餐食、導遊服務等您實際的感受，滿意或不滿意的地方都可以寫，至少15字..."></textarea>
+  <div class="hint">請寫下真實感受即可，不需要刻意寫得正面，我們同樣重視改進建議。</div>
+
+  <button class="submit-btn" id="submit-btn">送出心得</button>
+  <div class="msg" id="msg"></div>
+
+  <div class="note">📌 送出後將進入審核流程，確認內容為真實填寫、無不當用詞後即會刊登在官網「精彩回顧」頁面。</div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARHDAAuQbqYVayCAfA666LIXJR89hyvxY",
+  authDomain: "technova-dffa6.firebaseapp.com",
+  projectId: "technova-dffa6",
+  storageBucket: "technova-dffa6.firebasestorage.app",
+  messagingSenderId: "983643260882",
+  appId: "1:983643260882:web:9d1921bcfeb43b90cd2a0b",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+await signInAnonymously(auth).catch(()=>{});
+
+// 與 TechNova.html 內 TRAVEL_DATA 保持一致的「已結束」行程清單（提供旅客選擇）
+const ENDED_TRIPS = [
+  { id: 23, title: '沖繩藍海假期·離島秘境5日' },
+  { id: 24, title: '首爾春櫻·南怡島浪漫5日' },
+  { id: 25, title: '曼谷芭達雅·水上市場風情6日' },
+  { id: 26, title: '峇里島天堂島嶼·烏布藝術6日' },
+  { id: 27, title: '義大利經典·羅馬佛羅倫斯威尼斯10日' },
+  { id: 28, title: '紐西蘭南島·峽灣冰川秘境11日' },
+];
+
+const select = document.getElementById('trip-select');
+ENDED_TRIPS.forEach(t => {
+  const opt = document.createElement('option');
+  opt.value = t.id;
+  opt.textContent = t.title;
+  select.appendChild(opt);
+});
+const otherOpt = document.createElement('option');
+otherOpt.value = 'other';
+otherOpt.textContent = '其他（不在清單中）';
+select.appendChild(otherOpt);
+
+let rating = 0;
+document.querySelectorAll('#star-rating .star').forEach(star => {
+  star.addEventListener('click', () => {
+    rating = parseInt(star.dataset.v);
+    document.querySelectorAll('#star-rating .star').forEach(s => {
+      s.classList.toggle('active', parseInt(s.dataset.v) <= rating);
+    });
+  });
+});
+
+function showMsg(text, ok) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+}
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('submit-btn');
+  const tripId = select.value;
+  const tripTitle = tripId === 'other' ? '其他行程' : (select.options[select.selectedIndex]?.textContent || '');
+  const name = document.getElementById('traveler-name').value.trim();
+  const content = document.getElementById('content').value.trim();
+
+  if (!tripId) { showMsg('請選擇您參加的行程', false); return; }
+  if (!name) { showMsg('請填寫您的稱呼', false); return; }
+  if (content.length < 15) { showMsg('心得內容請至少填寫15字', false); return; }
+
+  btn.disabled = true; btn.textContent = '送出中...';
+  try {
+    const reviewId = `${tripId}_${Date.now()}`;
+    await setDoc(doc(db, 'travel_reviews', reviewId), {
+      tripId, tripTitle, name, rating, content,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    showMsg('✅ 感謝您的分享！心得已送出，審核通過後將刊登於官網。', true);
+    document.getElementById('traveler-name').value = '';
+    document.getElementById('content').value = '';
+    rating = 0;
+    document.querySelectorAll('#star-rating .star').forEach(s => s.classList.remove('active'));
+    select.selectedIndex = 0;
+    btn.textContent = '送出心得'; btn.disabled = false;
+  } catch (e) {
+    showMsg('送出失敗，請稍後再試：' + e.message, false);
+    btn.textContent = '送出心得'; btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
