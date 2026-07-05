@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大家的旅遊心得 - TechNova</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);min-height:100vh;padding:24px 16px}
+  .wrap{max-width:560px;margin:0 auto}
+  h1{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;text-align:center}
+  .sub{font-size:12.5px;color:#94a3b8;margin-bottom:20px;text-align:center}
+  .filters{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+  .filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid #334155;background:#1e293b;color:#cbd5e1;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+  .filter-btn.active{background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-color:transparent;color:#fff}
+  .card{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:16px 17px;margin-bottom:12px}
+  .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .name{font-size:14px;font-weight:800;color:#fff}
+  .stars{font-size:13px;color:#ffb020}
+  .trip{font-size:11.5px;font-weight:700;color:#63b3ed;margin-bottom:7px}
+  .sponsored{font-size:10px;color:#94a3b8;margin-bottom:7px}
+  .content{font-size:13px;color:#e2e8f0;line-height:1.7;white-space:pre-wrap}
+  .empty{text-align:center;color:#64748b;padding:40px 0;font-size:13px}
+  .loading{text-align:center;color:#64748b;padding:40px 0;font-size:13px}
+  .cta{display:block;text-align:center;margin-top:22px;padding:14px;background:linear-gradient(135deg,rgba(99,179,237,0.15),rgba(139,92,246,0.1));border:1.5px solid rgba(99,179,237,0.35);border-radius:12px;color:#63b3ed;font-size:13px;font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💬 大家的旅遊心得</h1>
+  <div class="sub">來自實際參加過行程的旅客真實分享</div>
+  <div class="filters" id="filters"></div>
+  <div id="list" class="loading">載入中...</div>
+  <a class="cta" href="旅遊心得回饋表單.html">✍️ 我也去過，我要分享心得</a>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARHDAAuQbqYVayCAfA666LIXJR89hyvxY",
+  authDomain: "technova-dffa6.firebaseapp.com",
+  projectId: "technova-dffa6",
+  storageBucket: "technova-dffa6.firebasestorage.app",
+  messagingSenderId: "983643260882",
+  appId: "1:983643260882:web:9d1921bcfeb43b90cd2a0b",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+await signInAnonymously(auth).catch(()=>{});
+
+// 與 TechNova.html 內 TRAVEL_DATA 對應的行程分類（用於篩選）
+const TRIP_CAT = {
+  23: 'japan', 24: 'korea', 25: 'thai', 26: 'sea', 27: 'europe', 28: 'other'
+};
+const CAT_LABELS = { all:'🌍 全部', japan:'🇯🇵 日本', korea:'🇰🇷 韓國', thai:'🇹🇭 泰國', sea:'🌊 東南亞', europe:'🏰 歐洲', other:'✈️ 其他' };
+
+let reviews = [];
+let currentCat = 'all';
+
+function starsHtml(n) {
+  n = n || 0;
+  return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+}
+
+function render() {
+  const list = document.getElementById('list');
+  const filtered = currentCat === 'all' ? reviews : reviews.filter(r => (TRIP_CAT[r.tripId] || 'other') === currentCat);
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">目前這個分類還沒有心得分享</div>';
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="name">${r.name || '匿名旅客'}</span>
+        <span class="stars">${starsHtml(r.rating)}</span>
+      </div>
+      <div class="trip">🧳 ${r.tripTitle || ''}</div>
+      ${r.sponsored ? '<div class="sponsored">🎁 本次行程由 TechNova 提供體驗</div>' : ''}
+      <div class="content"></div>`;
+    card.querySelector('.content').textContent = r.content || '';
+    list.appendChild(card);
+  });
+}
+
+async function load() {
+  const list = document.getElementById('list');
+  try {
+    const snap = await getDocs(collection(db, 'travel_reviews'));
+    reviews = snap.docs
+      .map(d => d.data())
+      .filter(d => d.status === 'approved')
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    render();
+  } catch (e) {
+    list.innerHTML = '<div class="empty">載入失敗：' + e.message + '</div>';
+  }
+}
+
+const filterBox = document.getElementById('filters');
+Object.entries(CAT_LABELS).forEach(([k, label]) => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn' + (k === 'all' ? ' active' : '');
+  btn.textContent = label;
+  btn.addEventListener('click', () => {
+    filterBox.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCat = k;
+    render();
+  });
+  filterBox.appendChild(btn);
+});
+
+load();
+</script>
+</body>
+</html>
