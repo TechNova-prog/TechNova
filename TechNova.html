@@ -513,6 +513,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
       <button class="travel-filter-btn" onclick="setTravelFilter('other',this)">✈️ 其他</button>
     </div>
     <div id="travel-list"></div>
+    <button onclick="openFeedbackModal()" style="width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,rgba(99,179,237,0.1),rgba(139,92,246,0.08));border:1.5px solid rgba(99,179,237,0.3);border-radius:12px;color:var(--accent3);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">✍️ 分享您的旅遊心得</button>
   </div>
 
   <!-- 旅遊詳情 Modal -->
@@ -523,6 +524,39 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         <button onclick="document.getElementById('travel-modal').classList.remove('open')" style="background:rgba(99,179,237,0.1);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:var(--muted);flex-shrink:0;line-height:32px">×</button>
       </div>
       <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 旅遊心得回饋 Modal -->
+  <div id="feedback-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.55);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeFeedbackModal()">
+    <div style="background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:20px 18px 30px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:900;color:var(--accent3)">✍️ 分享您的旅遊心得</div>
+        <button onclick="closeFeedbackModal()" style="background:rgba(99,179,237,0.1);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;color:var(--muted);flex-shrink:0;line-height:32px">×</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.6">感謝您參加我們的旅遊行程！請分享您真實的心得，不論滿意或有待改進之處，都歡迎誠實填寫，審核通過後將刊登於官網。</div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">參加的行程 *</div>
+      <select id="fb-trip-select" style="width:100%;padding:11px 13px;border:1.5px solid var(--border2);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface2);color:var(--text);margin-bottom:14px"></select>
+
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">您的稱呼 *</div>
+      <input type="text" id="fb-name" placeholder="例如：陳小姐、王先生" style="width:100%;padding:11px 13px;border:1.5px solid var(--border2);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface2);color:var(--text);margin-bottom:14px;box-sizing:border-box">
+
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">整體評價</div>
+      <div id="fb-star-rating" style="display:flex;gap:6px;margin-bottom:14px">
+        <span class="fb-star" data-v="1" style="font-size:26px;cursor:pointer;color:var(--border2)">★</span>
+        <span class="fb-star" data-v="2" style="font-size:26px;cursor:pointer;color:var(--border2)">★</span>
+        <span class="fb-star" data-v="3" style="font-size:26px;cursor:pointer;color:var(--border2)">★</span>
+        <span class="fb-star" data-v="4" style="font-size:26px;cursor:pointer;color:var(--border2)">★</span>
+        <span class="fb-star" data-v="5" style="font-size:26px;cursor:pointer;color:var(--border2)">★</span>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">心得內容 *</div>
+      <textarea id="fb-content" placeholder="請分享行程安排、住宿、餐食、導遊服務等您實際的感受，至少15字..." style="width:100%;min-height:110px;padding:11px 13px;border:1.5px solid var(--border2);border-radius:10px;font-size:13px;font-family:inherit;outline:none;background:var(--surface2);color:var(--text);resize:vertical;box-sizing:border-box"></textarea>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:5px;margin-bottom:16px">請寫下真實感受即可，不需要刻意寫得正面，我們同樣重視改進建議。</div>
+
+      <button id="fb-submit-btn" style="width:100%;padding:13px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">送出心得</button>
+      <div id="fb-msg" style="margin-top:12px;font-size:12.5px;text-align:center;padding:9px;border-radius:9px;display:none"></div>
     </div>
   </div>
 
@@ -1157,6 +1191,89 @@ let travelFilter = 'all';
 // 這裡明確把旅遊頁會用到、且用 onclick 呼叫的函式掛到 window，修正「點了沒反應」的問題。
 window.setTravelFilter = setTravelFilter;
 window.showTravelDetail = showTravelDetail;
+window.openFeedbackModal = openFeedbackModal;
+window.closeFeedbackModal = closeFeedbackModal;
+
+let fbRating = 0;
+
+function populateFeedbackTripSelect() {
+  const select = document.getElementById('fb-trip-select');
+  if (select.dataset.filled) return;
+  select.innerHTML = '<option value="">請選擇行程</option>';
+  TRAVEL_DATA.filter(t => t.ended).forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.flag + ' ' + t.title;
+    select.appendChild(opt);
+  });
+  const otherOpt = document.createElement('option');
+  otherOpt.value = 'other';
+  otherOpt.textContent = '其他（不在清單中）';
+  select.appendChild(otherOpt);
+  select.dataset.filled = '1';
+}
+
+function openFeedbackModal(tripId) {
+  populateFeedbackTripSelect();
+  const select = document.getElementById('fb-trip-select');
+  if (tripId) select.value = String(tripId);
+  else select.value = '';
+  document.getElementById('fb-name').value = '';
+  document.getElementById('fb-content').value = '';
+  document.getElementById('fb-msg').style.display = 'none';
+  fbRating = 0;
+  document.querySelectorAll('#fb-star-rating .fb-star').forEach(s => s.style.color = 'var(--border2)');
+  document.getElementById('feedback-modal').style.display = 'flex';
+}
+
+function closeFeedbackModal() {
+  document.getElementById('feedback-modal').style.display = 'none';
+}
+
+document.querySelectorAll('#fb-star-rating .fb-star').forEach(star => {
+  star.addEventListener('click', () => {
+    fbRating = parseInt(star.dataset.v);
+    document.querySelectorAll('#fb-star-rating .fb-star').forEach(s => {
+      s.style.color = parseInt(s.dataset.v) <= fbRating ? '#ffb020' : 'var(--border2)';
+    });
+  });
+});
+
+function showFbMsg(text, ok) {
+  const el = document.getElementById('fb-msg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = ok ? 'rgba(46,204,113,0.1)' : 'rgba(231,76,60,0.1)';
+  el.style.color = ok ? '#1e8449' : '#c0392b';
+}
+
+document.getElementById('fb-submit-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('fb-submit-btn');
+  const select = document.getElementById('fb-trip-select');
+  const tripId = select.value;
+  const tripTitle = tripId === 'other' ? '其他行程' : (select.options[select.selectedIndex]?.textContent || '');
+  const name = document.getElementById('fb-name').value.trim();
+  const content = document.getElementById('fb-content').value.trim();
+
+  if (!tripId) { showFbMsg('請選擇您參加的行程', false); return; }
+  if (!name) { showFbMsg('請填寫您的稱呼', false); return; }
+  if (content.length < 15) { showFbMsg('心得內容請至少填寫15字', false); return; }
+
+  btn.disabled = true; btn.textContent = '送出中...';
+  try {
+    const reviewId = `${tripId}_${Date.now()}`;
+    await fsUpdate(`travel_reviews/${reviewId}`, {
+      tripId, tripTitle, name, rating: fbRating, content,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    showFbMsg('✅ 感謝您的分享！心得已送出，審核通過後將刊登於官網。', true);
+    setTimeout(closeFeedbackModal, 1800);
+  } catch (e) {
+    showFbMsg('送出失敗，請稍後再試：' + e.message, false);
+  }
+  btn.textContent = '送出心得'; btn.disabled = false;
+});
 
 function setTravelFilter(cat, btn) {
   travelFilter = cat;
@@ -1272,6 +1389,7 @@ function showTravelDetail(id) {
       <div style="font-size:22px;margin-bottom:4px">🎉</div>
       <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px">本梯次行程已圓滿結束</div>
       <div style="font-size:11px;color:var(--muted)">感謝旅客們的支持，更多同款行程請洽助理詢問下次開團時間！</div>
+      <button onclick="openFeedbackModal(${t.id})" style="margin-top:10px;padding:9px 18px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:20px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✍️ 我是旅客，分享心得</button>
     </div>` : `
     <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between">
       <div>
