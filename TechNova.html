@@ -157,6 +157,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
 .travel-card-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
 .travel-tag{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800}
 .travel-price{font-size:16px;font-weight:900;color:var(--accent2)}
+.travel-card.ended{opacity:0.72}
+.ended-ribbon{position:absolute;top:8px;left:8px;background:rgba(100,116,139,0.85);color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px}
+.day-card{display:flex;gap:10px;background:rgba(99,179,237,0.05);border:1.5px solid rgba(99,179,237,0.16);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.day-card-num{flex-shrink:0;width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900}
+.day-card-num .d-lbl{font-size:8px;opacity:0.85;line-height:1}
+.day-card-num .d-num{font-size:15px;line-height:1.1}
+.day-card-body{flex:1}
+.day-card-title{font-size:12.5px;font-weight:800;color:var(--accent3);margin-bottom:3px}
+.day-card-text{font-size:12px;color:var(--text);opacity:0.85;line-height:1.6}
 </style>
 </head>
 <body>
@@ -1113,6 +1122,12 @@ const TRAVEL_DATA = [
   { id:20, cat:'europe', flag:'🇨🇭', country:'瑞士', img:'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&q=80', title:'瑞士巴士—悠然慢遊·絕美三大名峰·秘境雙湖13日', date:'9月21', price:'$266,000起', days:13, highlight:'三大名峰・秘境雙湖・慢旅瑞士', desc:'少女峰海拔3,454公尺，是「歐洲之巔」，冰原廣袤白茫令人震撼。秘境雙湖——奧施南與托馬湖人跡罕至，在湖畔木屋享用起司火鍋，這才是瑞士最真實的樣子。', features:['🏔️ 少女峰「歐洲之巔」，海拔3,454公尺','🎬 艾格峰＋卡拉羅007迴轉餐廳','💎 奧施南秘境湖','🧀 山間木屋起司火鍋','🌸 格林德瓦花谷健行'] },
   { id:21, cat:'other', flag:'🇦🇪', country:'杜拜', img:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80', title:'創意杜拜阿布達比沙迦（帆船酒店·法拉利樂園·羅浮宮·沙漠滑沙8日）', date:'9月06', price:'$194,900起', days:8, highlight:'帆船酒店・沙漠滑沙・羅浮宮', desc:'帆船酒店（Burj Al Arab）是全球最奢華酒店的代名詞，七星級的下午茶體驗讓你感受何謂極致禮遇。入夜後，哈里發塔燈光秀以世界最大的投影幕為畫布，壯觀無比。', features:['🛳️ 帆船酒店七星午茶','⚡ 哈里發塔頂層觀景台，124樓俯瞰杜拜','🏎️ 法拉利世界極速雲霄飛車','🎨 阿布達比羅浮宮','🐪 沙漠滑沙＋駱駝騎乘'] },
   { id:22, cat:'other', flag:'🇨🇦', country:'加拿大', img:'https://images.unsplash.com/photo-1531169628054-836a35a6a56b?w=800&q=80', title:'美麗星世界黃刀鎮洛磯12日（黃刀極光·班夫國家公園·硫磺山纜車）', date:'10月14', price:'$209,900起', days:12, highlight:'極光・洛磯山・班夫國家公園', desc:'黃刀鎮位於北緯62度，是全球觀賞北極光機率最高的城市之一，10月極光出現頻率超過70%。當綠色光帶在夜空中搖曳舞動，那份震撼是任何文字都無法描述的。\n\n露易絲湖冰川藍在夕陽下發出令人心醉的藍綠色光芒，哥倫比亞冰原雪車踏上一萬年古老冰川。', features:['🌌 黃刀鎮極光觀測，出現率70%以上','💙 露易絲湖冰川藍，世界最美高山湖泊','❄️ 哥倫比亞冰原雪車，踏上萬年古冰川','🍁 班夫楓紅季，洛磯山脈最美秋天','🐺 傑士伯國家公園野生動物'] },
+  { id:23, cat:'japan', flag:'🇯🇵', country:'日本', ended:true, img:'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=800&q=80', title:'沖繩藍海假期·離島秘境5日', date:'5月06/20', price:'$52,900起', days:5, highlight:'沖繩藍海・離島秘境・水肺潛水', desc:'沖繩擁有全日本最澄澈的海域，慶良間群島的海水透明度媲美加勒比海，被稱為「慶良間藍」。本團帶旅客搭船直達無人島，享受專屬沙灘與浮潛時光。\n\n首里城的琉球王朝古蹟，國際通的熱鬧街景，讓這趟旅程動靜皆宜。', features:['🌊 慶良間群島跳島浮潛，透明度世界級','🏖️ 古宇利島無人沙灘野餐','🏯 首里城琉球王朝古蹟巡禮','🍜 沖繩麵＋海葡萄在地美食','🛍️ 國際通購物散策'] },
+  { id:24, cat:'korea', flag:'🇰🇷', country:'韓國', ended:true, img:'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&q=80', title:'首爾春櫻·南怡島浪漫5日', date:'5月11/25', price:'$68,900起', days:5, highlight:'南怡島・春日花海・首爾漫遊', desc:'南怡島筆直的水杉林道是韓劇經典場景，五月新綠盎然，漫步其中彷彿走進浪漫電影。景福宮換上春裝，粉色與宮牆紅相映成趣。\n\n弘大、梨大街頭巷弄的青春氣息，讓整趟旅程充滿活力。', features:['🌳 南怡島水杉步道，韓劇經典取景地','👑 景福宮＋北村韓屋村','☕ 弘大特色咖啡廳巡禮','🎡 樂天世界主題樂園','🛍️ 明洞購物美食一次滿足'] },
+  { id:25, cat:'thai', flag:'🇹🇭', country:'泰國', ended:true, img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80', title:'曼谷芭達雅·水上市場風情6日', date:'6月02/16', price:'$49,900起', days:6, highlight:'水上市場・大城遺址・芭達雅海灘', desc:'丹嫩莎朵水上市場的傳統小船載滿新鮮水果與街頭小吃，是體驗泰式生活最道地的方式。大城遺址的斷垣殘壁見證泰國古都的興衰。\n\n芭達雅的海灘與夜生活為旅程畫下歡樂句點。', features:['🛶 丹嫩莎朵水上市場，傳統小船採買體驗','🏛️ 大城世界遺產古蹟巡禮','🐘 北欖鱷魚湖大象秀','🏖️ 芭達雅海灘自由活動','🦐 東芭樂園海鮮自助餐'] },
+  { id:26, cat:'sea', flag:'🇮🇩', country:'峇里島', ended:true, img:'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=80', title:'峇里島天堂島嶼·烏布藝術6日', date:'6月05/19', price:'$65,900起', days:6, highlight:'烏布藝術村・海神廟・梯田美景', desc:'烏布是峇里島的藝術與心靈中心，德哥拉朗梯田層層疊疊的翠綠，是攝影師心中的聖地。海神廟矗立於礁岩之上，退潮時可步行前往，日落時分美不勝收。', features:['🌾 德哥拉朗梯田景觀','🛕 海神廟日落奇景','🎨 烏布皇宮＋傳統市集','🐒 聖猴森林近距離互動','💆 峇里島傳統SPA療程'] },
+  { id:27, cat:'europe', flag:'🇮🇹', country:'義大利', ended:true, img:'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800&q=80', title:'義大利經典·羅馬佛羅倫斯威尼斯10日', date:'5月14', price:'$179,900起', days:10, highlight:'羅馬・佛羅倫斯・威尼斯', desc:'羅馬競技場訴說兩千年前的角鬥榮光，梵蒂岡西斯汀教堂的米開朗基羅壁畫震撼人心。佛羅倫斯是文藝復興的搖籃，烏菲茲美術館珍藏無數大師真跡。\n\n威尼斯貢多拉船穿梭於運河巷弄，浪漫指數滿分。', features:['🏛️ 羅馬競技場＋梵蒂岡博物館','🎨 烏菲茲美術館文藝復興真跡','🛶 威尼斯貢多拉遊船','🍝 托斯卡尼莊園晚宴','⛲ 許願池＋萬神殿'] },
+  { id:28, cat:'other', flag:'🇳🇿', country:'紐西蘭', ended:true, img:'https://images.unsplash.com/photo-1469521669194-babb45599def?w=800&q=80', title:'紐西蘭南島·峽灣冰川秘境11日', date:'6月09', price:'$189,900起', days:11, highlight:'米佛峽灣・福克斯冰川・皇后鎮', desc:'米佛峽灣被稱為「世界第八大奇景」，垂直峭壁與飛瀑直落海面震撼人心。福克斯冰川是全球少數可近距離步行抵達的冰川之一。\n\n皇后鎮是紐西蘭極限運動之都，高空彈跳、噴射快艇讓腎上腺素飆升。', features:['🚢 米佛峽灣遊船，世界第八大奇景','🧊 福克斯冰川健行','🪂 皇后鎮高空彈跳體驗','🐑 牧羊犬趕羊秀','🍷 中奧塔哥酒莊品酒'] },
 ];
 
 const CAT_GRADIENTS = {
@@ -1137,18 +1152,21 @@ function setTravelFilter(cat, btn) {
 function renderTravelList() {
   const list = document.getElementById('travel-list');
   if (!list) return;
-  const data = travelFilter === 'all' ? TRAVEL_DATA : TRAVEL_DATA.filter(t => t.cat === travelFilter);
+  let data = travelFilter === 'all' ? TRAVEL_DATA : TRAVEL_DATA.filter(t => t.cat === travelFilter);
   if (!data.length) { list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px">此分類暫無行程</div>'; return; }
+  // 未結束的行程排前面，已結束的行程（回顧）排後面
+  data = [...data].sort((a, b) => (a.ended ? 1 : 0) - (b.ended ? 1 : 0));
   list.innerHTML = data.map(t => {
     const grad = CAT_GRADIENTS[t.cat] || CAT_GRADIENTS.other;
     const emoji = CAT_EMOJI[t.cat] || '✈️';
-    return `<div class="travel-card" onclick="showTravelDetail(${t.id})">
+    return `<div class="travel-card${t.ended ? ' ended' : ''}" onclick="showTravelDetail(${t.id})">
       <div style="width:100%;height:150px;position:relative;background:${grad}">
-        ${t.img ? `<img src="${t.img}" alt="${t.country}" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0" onerror="this.style.display='none'">` : ''}
+        ${t.img ? `<img src="${t.img}" alt="${t.country}" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;${t.ended ? 'filter:grayscale(35%)' : ''}" onerror="this.style.display='none'">` : ''}
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;opacity:0.2;pointer-events:none">${emoji}</div>
         <div style="position:absolute;bottom:0;left:0;right:0;height:55px;background:linear-gradient(transparent,rgba(0,0,0,0.5))"></div>
         <div style="position:absolute;bottom:8px;left:10px;color:#fff;font-size:11px;font-weight:800;text-shadow:0 1px 4px rgba(0,0,0,.6)">${t.flag} ${t.country}</div>
         <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.45);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px">${t.days}天</div>
+        ${t.ended ? `<div class="ended-ribbon">🎉 已結束・精彩回顧</div>` : ''}
       </div>
       <div class="travel-card-body">
         <div class="travel-card-title">${t.title}</div>
@@ -1163,6 +1181,23 @@ function renderTravelList() {
   }).join('');
 }
 
+// 根據行程天數與特色自動產生「每日行程」字卡
+function buildDayCards(t) {
+  const days = t.days || 1;
+  const feats = (t.features || []).map(f => f.replace(/^[^\u0020]+\s/, '')); // 去除開頭emoji
+  const cards = [];
+  cards.push({ label: 'DAY', num: 1, title: '✈️ 出發・抵達', text: `桃園國際機場出發，飛往${t.country}。抵達後接機前往飯店，讓身心開始進入這趟旅程的節奏。` });
+  const midCount = Math.max(days - 2, 0);
+  for (let i = 0; i < midCount; i++) {
+    const f = feats.length ? feats[i % feats.length] : '深度探索當地文化、美食與風景';
+    cards.push({ label: 'DAY', num: i + 2, title: `精彩行程`, text: f });
+  }
+  if (days >= 2) {
+    cards.push({ label: 'DAY', num: days, title: '🏠 賦歸', text: '帶著滿滿的回憶與紀念品，搭機返回溫暖的家，結束這趟精彩旅程。' });
+  }
+  return cards;
+}
+
 function showTravelDetail(id) {
   const t = TRAVEL_DATA.find(x => x.id === id);
   if (!t) return;
@@ -1173,8 +1208,37 @@ function showTravelDetail(id) {
       <div style="font-size:11px;font-weight:800;color:var(--accent3);margin-bottom:10px;letter-spacing:1px">🗺️ 行程特色</div>
       ${t.features.map(f => `<div style="font-size:12.5px;color:var(--text);padding:4px 0;border-bottom:1px solid rgba(99,179,237,0.1)">${f}</div>`).join('')}
     </div>` : '';
+  const dayCards = buildDayCards(t);
+  const dayCardsHtml = dayCards.length ? `
+    <div style="margin-bottom:14px">
+      <div class="section-title" style="margin:0 0 8px">📅 每日行程</div>
+      ${dayCards.map(d => `<div class="day-card">
+        <div class="day-card-num"><span class="d-lbl">${d.label}</span><span class="d-num">${d.num}</span></div>
+        <div class="day-card-body">
+          <div class="day-card-title">${d.title}</div>
+          <div class="day-card-text">${d.text}</div>
+        </div>
+      </div>`).join('')}
+    </div>` : '';
+  const ctaHtml = t.ended ? `
+    <div style="background:rgba(100,116,139,0.1);border:1.5px solid rgba(100,116,139,0.3);border-radius:12px;padding:14px;text-align:center">
+      <div style="font-size:22px;margin-bottom:4px">🎉</div>
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px">本梯次行程已圓滿結束</div>
+      <div style="font-size:11px;color:var(--muted)">感謝旅客們的支持，更多同款行程請洽助理詢問下次開團時間！</div>
+    </div>` : `
+    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
+        <div style="font-size:22px;font-weight:900;color:var(--accent2)">${t.price}</div>
+      </div>
+      <div style="font-size:32px">✈️</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>`;
   document.getElementById('modal-body').innerHTML = `
-    ${t.img ? `<div style="width:100%;height:190px;border-radius:14px;overflow:hidden;margin-bottom:14px"><img src="${t.img}" alt="${t.country}" style="width:100%;height:100%;object-fit:cover;display:block"></div>` : ''}
+    ${t.img ? `<div style="width:100%;height:190px;border-radius:14px;overflow:hidden;margin-bottom:14px;position:relative">
+        <img src="${t.img}" alt="${t.country}" style="width:100%;height:100%;object-fit:cover;display:block;${t.ended ? 'filter:grayscale(35%)' : ''}">
+        ${t.ended ? `<div class="ended-ribbon" style="top:10px;left:10px">🎉 已結束・精彩回顧</div>` : ''}
+      </div>` : ''}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
       <span class="travel-tag" style="background:rgba(46,204,113,0.1);color:var(--green2);border:1.5px solid rgba(46,204,113,0.3)">📅 出發：${t.date}</span>
       <span class="travel-tag" style="background:rgba(99,179,237,0.08);color:var(--accent);border:1.5px solid rgba(255,160,60,0.25)">🗓 ${t.days}天行程</span>
@@ -1185,15 +1249,9 @@ function showTravelDetail(id) {
       <div style="font-size:13px;color:var(--text);font-weight:700">${t.highlight}</div>
     </div>
     ${descParagraphs}
+    ${dayCardsHtml}
     ${featuresHtml}
-    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
-        <div style="font-size:22px;font-weight:900;color:var(--accent2)">${t.price}</div>
-      </div>
-      <div style="font-size:32px">✈️</div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>
+    ${ctaHtml}
   `;
   document.getElementById('travel-modal').classList.add('open');
 }
