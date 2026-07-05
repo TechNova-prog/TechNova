@@ -1142,6 +1142,12 @@ const CAT_EMOJI = { japan:'🗻', korea:'🏯', thai:'🛕', sea:'🌊', europe:
 
 let travelFilter = 'all';
 
+// 因為整份程式是用 <script type="module">，module 內的 function 宣告
+// 不會自動掛到 window 上，HTML 的 onclick="..." 屬性找不到函式就會靜默失敗。
+// 這裡明確把旅遊頁會用到、且用 onclick 呼叫的函式掛到 window，修正「點了沒反應」的問題。
+window.setTravelFilter = setTravelFilter;
+window.showTravelDetail = showTravelDetail;
+
 function setTravelFilter(cat, btn) {
   travelFilter = cat;
   document.querySelectorAll('.travel-filter-btn').forEach(b => b.classList.remove('active'));
