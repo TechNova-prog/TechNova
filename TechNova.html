@@ -1472,14 +1472,42 @@ function showTravelDetail(id) {
       <div style="font-size:11px;color:var(--muted)">感謝旅客們的支持，更多同款行程請洽助理詢問下次開團時間！</div>
       <button onclick="openFeedbackModal(${t.id})" style="margin-top:10px;padding:9px 18px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:20px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✍️ 我是旅客，分享心得</button>
     </div>` : `
-    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
-        <div style="font-size:22px;font-weight:900;color:var(--accent2)">${t.price}</div>
+    <!-- 價格 + 樹點折抵 -->
+    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
+          <div style="font-size:24px;font-weight:900;color:var(--accent2)">${t.price}</div>
+        </div>
+        <div style="font-size:36px">✈️</div>
       </div>
-      <div style="font-size:32px">✈️</div>
+      <!-- 樹點折抵區塊 -->
+      <div style="border-top:1px solid rgba(99,179,237,0.15);padding-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:16px">🌳</span>
+            <span style="font-size:12px;font-weight:800;color:var(--green)">樹點折抵旅費</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)" id="tree-balance-label-${t.id}">讀取中...</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <div style="position:relative;flex:1">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none">🌳</span>
+            <input type="number" id="tree-input-${t.id}" min="0" step="100" placeholder="輸入折抵點數"
+              style="width:100%;padding:9px 12px 9px 32px;background:var(--surface2);border:1.5px solid rgba(16,185,129,0.3);border-radius:8px;font-size:13px;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box"
+              oninput="updateTreeCalc(${t.id})">
+          </div>
+          <button onclick="submitTreeRedeem(${t.id},'${t.title.replace(/'/g, "\'")}',${t.id})"
+            style="padding:9px 18px;background:linear-gradient(135deg,#10b981,#3b82f6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">送出申請</button>
+        </div>
+        <div id="tree-calc-${t.id}" style="min-height:38px">
+          <div style="background:rgba(16,185,129,0.06);border:1px dashed rgba(16,185,129,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted)">
+            💡 輸入要折抵的點數，1點 = $1，送出後等候助理確認
+          </div>
+        </div>
+      </div>
     </div>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>`;
+    <div style="font-size:11px;color:var(--muted);text-align:center">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>`;
   const reviewsSectionHtml = t.ended ? `
     <div style="margin-top:14px">
       <div class="section-title" style="margin:0 0 8px">💬 真實旅客心得</div>
@@ -1507,6 +1535,7 @@ function showTravelDetail(id) {
   `;
   document.getElementById('travel-modal').classList.add('open');
   if (t.ended) loadTravelReviewsForModal(t.id);
+  if (!t.ended) loadTreeBalance(t.id);
 }
 
 // 切到旅遊 tab 時渲染
@@ -1515,6 +1544,102 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { setTimeout(renderTravelList, 50); });
   }
 });
+
+
+// ── 樹點折抵旅費 ──
+let _treeBalance = 0;
+let _currentTripPrice = 0;
+
+async function loadTreeBalance(tripId) {
+  try {
+    const data = await fsGet(`members/${currentUID}`);
+    _treeBalance = (data && data.treePoints) || 0;
+    const lbl = document.getElementById('tree-balance-label-' + tripId);
+    if (lbl) {
+      if (_treeBalance > 0) {
+        lbl.innerHTML = '<span style="color:var(--green);font-weight:800">🌳 ' + _treeBalance + ' 點可用</span>';
+      } else {
+        lbl.innerHTML = '<span style="color:var(--muted)">目前無樹點</span>';
+      }
+    }
+    // reset calc hint
+    const calc = document.getElementById('tree-calc-' + tripId);
+    if (calc && _treeBalance === 0) {
+      calc.innerHTML = '<div style="background:rgba(248,113,113,0.08);border:1px dashed rgba(248,113,113,0.3);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red)">目前沒有樹點可折抵，完成任務累積點數後再來！</div>';
+    }
+  } catch(e) {
+    const lbl = document.getElementById('tree-balance-label-' + tripId);
+    if (lbl) lbl.textContent = '無法讀取';
+  }
+}
+
+function updateTreeCalc(tripId) {
+  const input = document.getElementById('tree-input-' + tripId);
+  const calc  = document.getElementById('tree-calc-' + tripId);
+  if (!input || !calc) return;
+  const val = parseInt(input.value) || 0;
+  if (val <= 0) {
+    calc.innerHTML = '<div style="background:rgba(16,185,129,0.06);border:1px dashed rgba(16,185,129,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted)">💡 輸入要折抵的點數，1點 = $1，送出後等候助理確認</div>';
+    return;
+  }
+  if (val > _treeBalance) {
+    calc.innerHTML = `<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red)">
+      ⚠️ 超過可用樹點（目前 ${_treeBalance} 點），請減少折抵數量
+    </div>`;
+  } else {
+    calc.innerHTML = `<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--muted)">折抵點數</span>
+        <span style="font-size:13px;font-weight:800;color:var(--green)">🌳 ${val} 點 = -$${val.toLocaleString()}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--muted)">剩餘樹點</span>
+        <span style="font-size:12px;color:var(--muted)">${_treeBalance - val} 點</span>
+      </div>
+      <div style="border-top:1px solid rgba(16,185,129,0.2);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:800;color:var(--text)">折抵後實付金額</span>
+        <span style="font-size:15px;font-weight:900;color:var(--accent2)">洽詢助理確認</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center">送出後等候助理確認，通過後樹點將自動扣除</div>
+    </div>`;
+  }
+}
+
+async function submitTreeRedeem(tripId, tripTitle) {
+  const input = document.getElementById('tree-input-' + tripId);
+  const val = parseInt(input && input.value) || 0;
+  if (val <= 0) { showToast('請輸入折抵點數', true); return; }
+  if (val > _treeBalance) { showToast('超過可用樹點！目前 ' + _treeBalance + ' 點', true); return; }
+  if (!confirm('確定申請用 🌳 ' + val + ' 點折抵此行程費用 $' + val + '？')) return;
+  const btn = document.querySelector('#tree-input-' + tripId + ' + button') ||
+              document.querySelector('[onclick*="submitTreeRedeem(' + tripId + '"]');
+  // find submit button
+  const allBtns = document.querySelectorAll('button');
+  let submitBtn = null;
+  allBtns.forEach(b => { if (b.textContent.includes('送出申請') && b.closest('[id^="tree-calc-"]' + tripId)) submitBtn = b; });
+
+  try {
+    const rid = 'tree_' + currentUID + '_' + Date.now();
+    await fsSet('tree_redeems/' + rid, {
+      uid: currentUID,
+      tripId: String(tripId),
+      tripTitle: tripTitle,
+      points: val,
+      discount: val,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    showToast('🌳 申請成功！已送出 ' + val + ' 點折抵申請，等候助理確認');
+    if (input) input.value = '';
+    // reset calc
+    const calc = document.getElementById('tree-calc-' + tripId);
+    if (calc) calc.innerHTML = '<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.4);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:800;text-align:center">✅ 申請已送出！等候助理審核</div>';
+    // reload balance
+    await loadTreeBalance(tripId);
+  } catch(e) {
+    showToast('申請失敗：' + e.message, true);
+  }
+}
 
 </script>
 </body>
