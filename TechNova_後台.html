@@ -161,6 +161,7 @@ textarea { resize: vertical; min-height: 100px; }
     <button class="admin-tab-btn" data-pane="pane-store-review">🏪 店家審核 <span id="store-badge" style="display:none;background:#ff5f7e;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">0</span></button>
     <button class="admin-tab-btn" data-pane="pane-ai-review">🤖 AI任務審核 <span id="ai-badge" style="display:none;background:#7c3aed;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">0</span></button>
     <button class="admin-tab-btn" data-pane="pane-travel-review">🧳 旅遊心得審核 <span id="travel-badge" style="display:none;background:#3b82f6;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">0</span></button>
+    <button class="admin-tab-btn" data-pane="pane-tree-review">🌳 樹點兌換 <span id="tree-badge" style="display:none;background:#10b981;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">0</span></button>
     <button class="admin-tab-btn" data-pane="pane-members">👥 會員</button>
     <button class="admin-tab-btn" data-pane="pane-tasks">📋 任務</button>
     <button class="admin-tab-btn" data-pane="pane-stats">📊 統計</button>
@@ -175,6 +176,28 @@ textarea { resize: vertical; min-height: 100px; }
       <div class="section-title" style="margin:0 0 10px">YT 時段</div>
       <div class="quick-grid" id="quick-yt-grid"></div>
       <button class="btn btn-green" style="width:100%;margin-top:18px" id="quick-register-btn">✅ 確認登記</button>
+    </div>
+  </div>
+
+  <div class="admin-pane" id="pane-tree-review">
+    <div class="card">
+      <h4>🌳 樹點兌換折抵審核</h4>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted)">審核會員送出的旅遊樹點折抵申請</div>
+        <button id="approve-all-tree-btn" class="btn btn-green" style="font-size:13px;padding:8px 20px">✅ 一鍵全部通過</button>
+      </div>
+      <div id="tree-review-loading" style="color:var(--muted);text-align:center;padding:20px">載入中...</div>
+      <div id="tree-review-list"></div>
+    </div>
+    <!-- 會員樹點管理 -->
+    <div class="card" style="margin-top:14px">
+      <h4>🌳 手動調整會員樹點</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="tree-uid-input" placeholder="會員編號 U12345" style="flex:1;min-width:120px">
+        <input type="number" id="tree-pts-input" placeholder="點數（正數增加/負數扣除）" style="flex:2;min-width:140px">
+        <button class="btn btn-primary" id="tree-adjust-btn" style="white-space:nowrap">調整樹點</button>
+      </div>
+      <div id="tree-adjust-msg" style="margin-top:8px;font-size:12px;color:var(--green)"></div>
     </div>
   </div>
 
@@ -391,6 +414,31 @@ async function fsGet(path) {
 async function fsSet(path, data) {
   const parts = path.split('/');
   await setDoc(doc(db, parts[0], parts[1]), data, { merge: true });
+}
+
+// ── 樹點加成計算 ──
+// taskType: 'yt'(50點) | 'store'(80點) | 'ai'(60點)
+function calcTreePoints(memberData, taskType, taskDate) {
+  const BASE = { yt: 50, store: 80, ai: 60 };
+  const base = BASE[taskType] || 50;
+  // 計算連續天數（看 taskCompletedDays）
+  const completedDays = (memberData && memberData.taskCompletedDays) || {};
+  // 找從 taskDate 往前連續幾天都有完成任務
+  let streak = 0;
+  let d = new Date(taskDate);
+  d.setDate(d.getDate() - 1); // 從前一天開始算
+  for (let i = 0; i < 30; i++) {
+    const ds = d.toISOString().slice(0, 10);
+    if (completedDays[ds]) { streak++; d.setDate(d.getDate() - 1); } else break;
+  }
+  // 加成規則
+  let multiplier = 1;
+  let bonusLabel = '';
+  if (streak >= 14)      { multiplier = 2.0; bonusLabel = '🔥 連續14天 +100%'; }
+  else if (streak >= 7)  { multiplier = 1.5; bonusLabel = '⚡ 連續7天 +50%'; }
+  else if (streak >= 3)  { multiplier = 1.2; bonusLabel = '✨ 連續3天 +20%'; }
+  const earned = Math.round(base * multiplier);
+  return { base, earned, streak, multiplier, bonusLabel };
 }
 async function fsUpdate(path, data) { return fsSet(path, data); }
 async function fsDelete(path) {
@@ -1148,7 +1196,13 @@ async function approveReview(reviewId, uid, taskId, date) {
     await fsSet(`pending_reviews/${reviewId}`, { status: 'approved' });
     const memberData = await fsGet(`members/${uid}`);
     const newBonus = ((memberData && memberData.bonus)||0) + 100;
-    const updateData = { bonus: newBonus };
+    // 計算樹點（YT任務）+ 連續加成
+    const treeInfo = calcTreePoints(memberData, 'yt', date || new Date().toISOString().slice(0,10));
+    const newTree = ((memberData && memberData.treePoints)||0) + treeInfo.earned;
+    // 更新 taskCompletedDays
+    const completedDays = (memberData && memberData.taskCompletedDays) || {};
+    completedDays[date || new Date().toISOString().slice(0,10)] = true;
+    const updateData = { bonus: newBonus, treePoints: newTree, taskCompletedDays: completedDays };
     if (taskId) {
       const ytTasks   = (memberData && memberData.ytTasks)   || {};
       const ytReviews = (memberData && memberData.ytReviews) || {};
@@ -1160,7 +1214,8 @@ async function approveReview(reviewId, uid, taskId, date) {
       updateData.ytReviews = ytReviews;
     }
     await fsSet(`members/${uid}`, updateData);
-    showToast(`✅ 已通過，入帳 100 元（累積 ${newBonus} 元）`);
+    const bonusMsg = treeInfo.bonusLabel ? ` ${treeInfo.bonusLabel}` : '';
+    showToast(`✅ 已通過！入帳 $100 + 🌳${treeInfo.earned}點${bonusMsg}（連續${treeInfo.streak+1}天）`);
     loadReviews();
   } catch(e) {
     showToast('操作失敗：' + e.message, true);
@@ -1193,10 +1248,16 @@ document.getElementById('approve-all-review-btn').addEventListener('click', asyn
           updateData.ytTasks   = ytTasks;
           updateData.ytReviews = ytReviews;
         }
+        const treeInfo = calcTreePoints(memberData, 'yt', r.date || new Date().toISOString().slice(0,10));
+        const newTree = ((memberData && memberData.treePoints)||0) + treeInfo.earned;
+        const completedDays2 = (memberData && memberData.taskCompletedDays) || {};
+        completedDays2[r.date || new Date().toISOString().slice(0,10)] = true;
+        updateData.treePoints = newTree;
+        updateData.taskCompletedDays = completedDays2;
         await fsSet(`members/${r.uid}`, updateData); count++;
       } catch(e) { console.error(e); }
     }
-    showToast(`✅ 已全部通過！共 ${count} 筆，各入帳 100 元`); loadReviews();
+    showToast(`✅ 已全部通過！共 ${count} 筆，各入帳 $100 + 🌳樹點`); loadReviews();
   } catch(e) { showToast('操作失敗：' + e.message, true); }
   btn.textContent = '✅ 一鍵全部通過'; btn.disabled = false;
 });
@@ -1210,8 +1271,19 @@ document.getElementById('approve-all-ai-btn').addEventListener('click', async ()
     const pending = docs.filter(({ data: d }) => d.status === 'pending');
     if (!pending.length) { showToast('目前沒有待審核項目'); btn.textContent = '✅ 一鍵全部通過'; btn.disabled = false; return; }
     let count = 0;
-    for (const { id } of pending) { try { await fsSet(`ai_reviews/${id}`, { status: 'approved' }); count++; } catch(e) { console.error(e); } }
-    showToast(`✅ 已全部通過！共 ${count} 筆`); loadAiReviews(); updateAiBadge();
+    for (const { id, data: r } of pending) {
+      try {
+        await fsSet(`ai_reviews/${id}`, { status: 'approved' });
+        const memberData = await fsGet(`members/${r.uid}`);
+        const treeInfo = calcTreePoints(memberData, 'ai', new Date().toISOString().slice(0,10));
+        const newTree = ((memberData && memberData.treePoints)||0) + treeInfo.earned;
+        const completedDays = (memberData && memberData.taskCompletedDays) || {};
+        completedDays[new Date().toISOString().slice(0,10)] = true;
+        await fsSet(`members/${r.uid}`, { treePoints: newTree, taskCompletedDays: completedDays });
+        count++;
+      } catch(e) { console.error(e); }
+    }
+    showToast(`✅ 已全部通過！共 ${count} 筆，各獲得 🌳60點起（連續加成）`); loadAiReviews(); updateAiBadge();
   } catch(e) { showToast('操作失敗：' + e.message, true); }
   btn.textContent = '✅ 一鍵全部通過'; btn.disabled = false;
 });
@@ -1230,11 +1302,15 @@ document.getElementById('approve-all-store-btn').addEventListener('click', async
         await fsSet(`store_reviews/${id}`, { status: 'approved' });
         const memberData = await fsGet(`members/${r.uid}`);
         const newBonus = ((memberData && memberData.bonus) || 0) + 700;
-        await fsSet(`members/${r.uid}`, { bonus: newBonus });
+        const treeInfo = calcTreePoints(memberData, 'store', new Date().toISOString().slice(0,10));
+        const newTree = ((memberData && memberData.treePoints)||0) + treeInfo.earned;
+        const completedDays = (memberData && memberData.taskCompletedDays) || {};
+        completedDays[new Date().toISOString().slice(0,10)] = true;
+        await fsSet(`members/${r.uid}`, { bonus: newBonus, treePoints: newTree, taskCompletedDays: completedDays });
         count++;
       } catch(e) { console.error(e); }
     }
-    showToast(`✅ 已全部通過！共 ${count} 筆，每筆入帳 700 元`);
+    showToast(`✅ 已全部通過！共 ${count} 筆，每筆入帳 $700 + 🌳80點起`);
     loadStoreReviews(); updateStoreBadge();
   } catch(e) { showToast('操作失敗：' + e.message, true); }
   btn.textContent = '✅ 一鍵全部通過'; btn.disabled = false;
