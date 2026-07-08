@@ -366,7 +366,16 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text);margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,193,7,0.2)"><span>任務酬勞</span><span style="font-weight:700">500 元</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text);margin-bottom:10px"><span>體驗補貼</span><span style="font-weight:700">200 元</span></div>
         <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);border-radius:8px;padding:10px 12px"><span style="color:#c0392b">總計可領取</span><span style="color:#c0392b">700 元</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:800;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px 12px;margin-top:8px">
+          <span style="color:var(--green)">🌳 樹點獎勵</span>
+          <span style="color:var(--green)">+300點（連續加成最高 x2）</span>
+        </div>
       </div>
+    </div>
+    <!-- 店家任務：連續天數狀態 -->
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(59,130,246,0.04));border:1.5px solid rgba(16,185,129,0.2);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+      <div id="store-streak-status" style="font-size:12px;color:var(--muted)">計算連續天數中...</div>
+      <div id="store-tree-pts" style="font-size:13px;font-weight:800;color:var(--green)">🌳 讀取中</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📋 我的任務紀錄</div>
@@ -483,6 +492,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         </div>
       </div>
       <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--text);line-height:1.8">📢 每日兩個時段，各自上傳截圖回報，管理員確認後即入帳獎勵。</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:10px 14px;margin-top:10px">
+        <span style="font-size:13px;color:var(--green);font-weight:800">🌳 完成獲得樹點</span>
+        <span style="font-size:15px;font-weight:900;color:var(--green)">+80點（連續加成最高 x2）</span>
+      </div>
+    </div>
+    <!-- AI任務：連續天數狀態 -->
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(139,92,246,0.04));border:1.5px solid rgba(16,185,129,0.2);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+      <div id="ai-streak-status" style="font-size:12px;color:var(--muted)">計算連續天數中...</div>
+      <div id="ai-tree-pts" style="font-size:13px;font-weight:800;color:var(--green)">🌳 讀取中</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📋 我的 AI 任務紀錄</div>
@@ -609,41 +627,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         <circle cx="46" cy="6" r="2.5" fill="#8b5cf6" opacity="0.6"/>
         <circle cx="48" cy="46" r="1.5" fill="#3b82f6" opacity="0.7"/>
       </svg>
-      <div style="flex:1">
+      <div>
         <div style="font-size:13px;font-weight:700;color:var(--text)">觀看 YouTube 影片賺取獎勵</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">每部影片通過審核即入帳 <strong style="color:var(--green)">$100</strong> + <strong style="color:#10b981">🌳50點</strong></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">每部影片上傳截圖與心得，通過審核即入帳 <strong style="color:var(--green)">100元</strong></div>
       </div>
-    </div>
-    <!-- 點數規則說明 -->
-    <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(59,130,246,0.05));border:1.5px solid rgba(16,185,129,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:800;color:var(--green)">🌳 三種任務完成獲得樹點</div>
-        <div id="tree-pts-display" style="font-size:12px;font-weight:800;color:var(--accent2)">讀取中...</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="background:rgba(255,0,0,0.08);border:1px solid rgba(255,0,0,0.15);border-radius:8px;padding:7px;text-align:center">
-          <div style="font-size:16px">📺</div>
-          <div style="font-size:11px;font-weight:800;color:var(--text)">YT任務</div>
-          <div style="font-size:13px;font-weight:900;color:#10b981">+50點</div>
-        </div>
-        <div style="background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.15);border-radius:8px;padding:7px;text-align:center">
-          <div style="font-size:16px">🏪</div>
-          <div style="font-size:11px;font-weight:800;color:var(--text)">店家任務</div>
-          <div style="font-size:13px;font-weight:900;color:#10b981">+80點</div>
-        </div>
-        <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:8px;padding:7px;text-align:center">
-          <div style="font-size:16px">🤖</div>
-          <div style="font-size:11px;font-weight:800;color:var(--text)">AI任務</div>
-          <div style="font-size:13px;font-weight:900;color:#10b981">+60點</div>
-        </div>
-      </div>
-      <div style="font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px">🔥 連續完成任務額外加成</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <span style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--green)">連續3天 +20%</span>
-        <span style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--accent)">連續7天 +50%</span>
-        <span style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--accent2)">連續14天 +100%</span>
-      </div>
-      <div id="streak-status" style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center">計算連續天數中...</div>
     </div>
     <div id="yt-slots-list"></div>
   </div>
@@ -1046,38 +1033,58 @@ async function doCheckin(today) {
   } catch(e) { showToast('簽到失敗：' + e.message, true); btn.textContent = '🌟 立即簽到'; btn.disabled = false; }
 }
 
+
+// ── 共用：更新任意 tab 的連續天數顯示 ──
+function updateStreakUI(streakElId, treeElId, treePoints, streak, taskType) {
+  const BASE = { yt: 160, store: 300, ai: 80 };
+  const base = BASE[taskType] || 100;
+  let mult = 1.0, bonusText = '基礎';
+  if (streak >= 14)     { mult = 2.0; bonusText = '👑 連續'+streak+'天 x2倍！'; }
+  else if (streak >= 7) { mult = 1.5; bonusText = '🏆 連續'+streak+'天 x1.5！再'+(14-streak)+'天達 x2'; }
+  else if (streak >= 3) { mult = 1.2; bonusText = '⚡ 連續'+streak+'天 x1.2！再'+(7-streak)+'天達 x1.5'; }
+  else if (streak > 0)  { bonusText = '🔥 連續'+streak+'天！再'+(3-streak)+'天達 x1.2 加成'; }
+  else                  { bonusText = '尚未開始連續任務，今天完成就開始累積！'; }
+  const nextPts = Math.round(base * mult);
+  const streakEl = document.getElementById(streakElId);
+  const treeEl   = document.getElementById(treeElId);
+  if (streakEl) streakEl.innerHTML = '<span style="color:var(--text);font-weight:700">'+bonusText+'</span>';
+  if (treeEl)   treeEl.textContent = '🌳 '+treePoints+'點 | 下次+'+nextPts+'點';
+}
 async function renderTasks() {
   try {
     const today = todayStr();
     const memberData = await fsGet(`members/${currentUID}`);
-    // 更新樹點顯示
-    const treePoints = (memberData && memberData.treePoints) || 0;
-    const treePtsEl = document.getElementById('tree-pts-display');
-    if (treePtsEl) treePtsEl.innerHTML = `🌳 <span style="color:var(--green)">${treePoints} 點</span>`;
-    // 計算連續天數
-    const completedDays = (memberData && memberData.taskCompletedDays) || {};
-    let streak = 0;
-    let d = new Date(today);
-    for (let i = 0; i < 30; i++) {
-      const ds = d.toISOString().slice(0, 10);
-      if (completedDays[ds]) { streak++; d.setDate(d.getDate() - 1); } else break;
-    }
-    const streakEl = document.getElementById('streak-status');
-    if (streakEl) {
-      let streakMsg = '', streakColor = 'var(--muted)';
-      if (streak === 0) { streakMsg = '尚未開始連續任務，今天完成任務就開始累積！'; }
-      else if (streak < 3) { streakMsg = `🔥 已連續 ${streak} 天！再 ${3-streak} 天達成連續3天 +20%`; streakColor = 'var(--text)'; }
-      else if (streak < 7) { streakMsg = `⚡ 連續 ${streak} 天 +20%！再 ${7-streak} 天達成連續7天 +50%`; streakColor = '#10b981'; }
-      else if (streak < 14) { streakMsg = `🏆 連續 ${streak} 天 +50%！再 ${14-streak} 天達成連續14天 +100%`; streakColor = '#3b82f6'; }
-      else { streakMsg = `👑 連續 ${streak} 天！已達最高加成 +100%，繼續保持！`; streakColor = '#8b5cf6'; }
-      streakEl.innerHTML = `<span style="color:${streakColor};font-weight:700">${streakMsg}</span>`;
-    }
     const ytTasks         = (memberData && memberData.ytTasks)         || {};
     const ytReviews       = (memberData && memberData.ytReviews)       || {};
     const ytRejectReasons = (memberData && memberData.ytRejectReasons) || {};
     const bonus           = (memberData && memberData.bonus)           || 0;
+    const treePoints      = (memberData && memberData.treePoints)      || 0;
+    const completedDays   = (memberData && memberData.taskCompletedDays) || {};
     document.getElementById('global-bonus-bar').style.display = 'flex';
     document.getElementById('global-bonus-amount').textContent = bonus;
+    // 更新樹點顯示
+    const treePtsEl = document.getElementById('tree-pts-display');
+    if (treePtsEl) treePtsEl.innerHTML = '🌳 <span style="color:var(--green)">' + treePoints + ' 點</span>';
+    // 計算連續天數
+    let streak = 0;
+    let sd = new Date(today);
+    for (let i = 0; i < 30; i++) {
+      const ds = sd.toISOString().slice(0, 10);
+      if (completedDays[ds]) { streak++; sd.setDate(sd.getDate() - 1); } else break;
+    }
+    // 更新各tab連續天數顯示
+    const streakEl = document.getElementById('streak-status');
+    if (streakEl) {
+      let streakMsg = '', streakColor = 'var(--muted)';
+      if (streak === 0) { streakMsg = '尚未開始連續任務，今天完成任務就開始累積！'; }
+      else if (streak < 3) { streakMsg = '🔥 已連續 ' + streak + ' 天！再 ' + (3-streak) + ' 天達 +20%'; streakColor = 'var(--text)'; }
+      else if (streak < 7) { streakMsg = '⚡ 連續 ' + streak + ' 天 +20%！再 ' + (7-streak) + ' 天達 +50%'; streakColor = '#10b981'; }
+      else if (streak < 14) { streakMsg = '🏆 連續 ' + streak + ' 天 +50%！再 ' + (14-streak) + ' 天達 +100%'; streakColor = '#3b82f6'; }
+      else { streakMsg = '👑 連續 ' + streak + ' 天！最高加成 +100%，繼續保持！'; streakColor = '#8b5cf6'; }
+      streakEl.innerHTML = '<span style="color:' + streakColor + ';font-weight:700">' + streakMsg + '</span>';
+    }
+    updateStreakUI('store-streak-status', 'store-tree-pts', treePoints, streak, 'store');
+    updateStreakUI('ai-streak-status', 'ai-tree-pts', treePoints, streak, 'ai');
     const ytDocs = await fsList('yt_tasks');
     const ytEl = document.getElementById('yt-slots-list');
     ytEl.innerHTML = '';
@@ -1525,42 +1532,14 @@ function showTravelDetail(id) {
       <div style="font-size:11px;color:var(--muted)">感謝旅客們的支持，更多同款行程請洽助理詢問下次開團時間！</div>
       <button onclick="openFeedbackModal(${t.id})" style="margin-top:10px;padding:9px 18px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border:none;border-radius:20px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">✍️ 我是旅客，分享心得</button>
     </div>` : `
-    <!-- 價格 + 樹點折抵 -->
-    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:14px;padding:16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
-          <div style="font-size:24px;font-weight:900;color:var(--accent2)">${t.price}</div>
-        </div>
-        <div style="font-size:36px">✈️</div>
+    <div style="background:linear-gradient(135deg,rgba(99,179,237,0.08),rgba(139,92,246,0.06));border:1.5px solid rgba(99,179,237,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">旅遊專用金可折抵</div>
+        <div style="font-size:22px;font-weight:900;color:var(--accent2)">${t.price}</div>
       </div>
-      <!-- 樹點折抵區塊 -->
-      <div style="border-top:1px solid rgba(99,179,237,0.15);padding-top:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:16px">🌳</span>
-            <span style="font-size:12px;font-weight:800;color:var(--green)">樹點折抵旅費</span>
-          </div>
-          <div style="font-size:11px;color:var(--muted)" id="tree-balance-label-${t.id}">讀取中...</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-          <div style="position:relative;flex:1">
-            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none">🌳</span>
-            <input type="number" id="tree-input-${t.id}" min="0" step="100" placeholder="輸入折抵點數"
-              style="width:100%;padding:9px 12px 9px 32px;background:var(--surface2);border:1.5px solid rgba(16,185,129,0.3);border-radius:8px;font-size:13px;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box"
-              oninput="updateTreeCalc(${t.id})">
-          </div>
-          <button onclick="submitTreeRedeem(${t.id},'${t.title.replace(/'/g, "\'")}',${t.id})"
-            style="padding:9px 18px;background:linear-gradient(135deg,#10b981,#3b82f6);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">送出申請</button>
-        </div>
-        <div id="tree-calc-${t.id}" style="min-height:38px">
-          <div style="background:rgba(16,185,129,0.06);border:1px dashed rgba(16,185,129,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted)">
-            💡 輸入要折抵的點數，1點 = $1，送出後等候助理確認
-          </div>
-        </div>
-      </div>
+      <div style="font-size:32px">✈️</div>
     </div>
-    <div style="font-size:11px;color:var(--muted);text-align:center">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>`;
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">詳細行程請洽助理，用旅遊專用金圓你的夢！</div>`;
   const reviewsSectionHtml = t.ended ? `
     <div style="margin-top:14px">
       <div class="section-title" style="margin:0 0 8px">💬 真實旅客心得</div>
@@ -1588,7 +1567,6 @@ function showTravelDetail(id) {
   `;
   document.getElementById('travel-modal').classList.add('open');
   if (t.ended) loadTravelReviewsForModal(t.id);
-  if (!t.ended) loadTreeBalance(t.id);
 }
 
 // 切到旅遊 tab 時渲染
@@ -1597,102 +1575,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { setTimeout(renderTravelList, 50); });
   }
 });
-
-
-// ── 樹點折抵旅費 ──
-let _treeBalance = 0;
-let _currentTripPrice = 0;
-
-async function loadTreeBalance(tripId) {
-  try {
-    const data = await fsGet(`members/${currentUID}`);
-    _treeBalance = (data && data.treePoints) || 0;
-    const lbl = document.getElementById('tree-balance-label-' + tripId);
-    if (lbl) {
-      if (_treeBalance > 0) {
-        lbl.innerHTML = '<span style="color:var(--green);font-weight:800">🌳 ' + _treeBalance + ' 點可用</span>';
-      } else {
-        lbl.innerHTML = '<span style="color:var(--muted)">目前無樹點</span>';
-      }
-    }
-    // reset calc hint
-    const calc = document.getElementById('tree-calc-' + tripId);
-    if (calc && _treeBalance === 0) {
-      calc.innerHTML = '<div style="background:rgba(248,113,113,0.08);border:1px dashed rgba(248,113,113,0.3);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red)">目前沒有樹點可折抵，完成任務累積點數後再來！</div>';
-    }
-  } catch(e) {
-    const lbl = document.getElementById('tree-balance-label-' + tripId);
-    if (lbl) lbl.textContent = '無法讀取';
-  }
-}
-
-function updateTreeCalc(tripId) {
-  const input = document.getElementById('tree-input-' + tripId);
-  const calc  = document.getElementById('tree-calc-' + tripId);
-  if (!input || !calc) return;
-  const val = parseInt(input.value) || 0;
-  if (val <= 0) {
-    calc.innerHTML = '<div style="background:rgba(16,185,129,0.06);border:1px dashed rgba(16,185,129,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted)">💡 輸入要折抵的點數，1點 = $1，送出後等候助理確認</div>';
-    return;
-  }
-  if (val > _treeBalance) {
-    calc.innerHTML = `<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red)">
-      ⚠️ 超過可用樹點（目前 ${_treeBalance} 點），請減少折抵數量
-    </div>`;
-  } else {
-    calc.innerHTML = `<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px 12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:11px;color:var(--muted)">折抵點數</span>
-        <span style="font-size:13px;font-weight:800;color:var(--green)">🌳 ${val} 點 = -$${val.toLocaleString()}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:11px;color:var(--muted)">剩餘樹點</span>
-        <span style="font-size:12px;color:var(--muted)">${_treeBalance - val} 點</span>
-      </div>
-      <div style="border-top:1px solid rgba(16,185,129,0.2);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:12px;font-weight:800;color:var(--text)">折抵後實付金額</span>
-        <span style="font-size:15px;font-weight:900;color:var(--accent2)">洽詢助理確認</span>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:center">送出後等候助理確認，通過後樹點將自動扣除</div>
-    </div>`;
-  }
-}
-
-async function submitTreeRedeem(tripId, tripTitle) {
-  const input = document.getElementById('tree-input-' + tripId);
-  const val = parseInt(input && input.value) || 0;
-  if (val <= 0) { showToast('請輸入折抵點數', true); return; }
-  if (val > _treeBalance) { showToast('超過可用樹點！目前 ' + _treeBalance + ' 點', true); return; }
-  if (!confirm('確定申請用 🌳 ' + val + ' 點折抵此行程費用 $' + val + '？')) return;
-  const btn = document.querySelector('#tree-input-' + tripId + ' + button') ||
-              document.querySelector('[onclick*="submitTreeRedeem(' + tripId + '"]');
-  // find submit button
-  const allBtns = document.querySelectorAll('button');
-  let submitBtn = null;
-  allBtns.forEach(b => { if (b.textContent.includes('送出申請') && b.closest('[id^="tree-calc-"]' + tripId)) submitBtn = b; });
-
-  try {
-    const rid = 'tree_' + currentUID + '_' + Date.now();
-    await fsSet('tree_redeems/' + rid, {
-      uid: currentUID,
-      tripId: String(tripId),
-      tripTitle: tripTitle,
-      points: val,
-      discount: val,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-    showToast('🌳 申請成功！已送出 ' + val + ' 點折抵申請，等候助理確認');
-    if (input) input.value = '';
-    // reset calc
-    const calc = document.getElementById('tree-calc-' + tripId);
-    if (calc) calc.innerHTML = '<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.4);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:800;text-align:center">✅ 申請已送出！等候助理審核</div>';
-    // reload balance
-    await loadTreeBalance(tripId);
-  } catch(e) {
-    showToast('申請失敗：' + e.message, true);
-  }
-}
 
 </script>
 </body>
