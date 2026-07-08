@@ -419,7 +419,7 @@ async function fsSet(path, data) {
 // ── 樹點加成計算 ──
 // taskType: 'yt'(50點) | 'store'(80點) | 'ai'(60點)
 function calcTreePoints(memberData, taskType, taskDate) {
-  const BASE = { yt: 50, store: 80, ai: 60 };
+  const BASE = { yt: 160, store: 300, ai: 80 };
   const base = BASE[taskType] || 50;
   // 計算連續天數（看 taskCompletedDays）
   const completedDays = (memberData && memberData.taskCompletedDays) || {};
