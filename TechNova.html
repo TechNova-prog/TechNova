@@ -609,10 +609,41 @@ body::after{content:'';position:fixed;inset:0;z-index:0;
         <circle cx="46" cy="6" r="2.5" fill="#8b5cf6" opacity="0.6"/>
         <circle cx="48" cy="46" r="1.5" fill="#3b82f6" opacity="0.7"/>
       </svg>
-      <div>
+      <div style="flex:1">
         <div style="font-size:13px;font-weight:700;color:var(--text)">觀看 YouTube 影片賺取獎勵</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">每部影片上傳截圖與心得，通過審核即入帳 <strong style="color:var(--green)">100元</strong></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">每部影片通過審核即入帳 <strong style="color:var(--green)">$100</strong> + <strong style="color:#10b981">🌳50點</strong></div>
       </div>
+    </div>
+    <!-- 點數規則說明 -->
+    <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(59,130,246,0.05));border:1.5px solid rgba(16,185,129,0.2);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:800;color:var(--green)">🌳 三種任務完成獲得樹點</div>
+        <div id="tree-pts-display" style="font-size:12px;font-weight:800;color:var(--accent2)">讀取中...</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+        <div style="background:rgba(255,0,0,0.08);border:1px solid rgba(255,0,0,0.15);border-radius:8px;padding:7px;text-align:center">
+          <div style="font-size:16px">📺</div>
+          <div style="font-size:11px;font-weight:800;color:var(--text)">YT任務</div>
+          <div style="font-size:13px;font-weight:900;color:#10b981">+50點</div>
+        </div>
+        <div style="background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.15);border-radius:8px;padding:7px;text-align:center">
+          <div style="font-size:16px">🏪</div>
+          <div style="font-size:11px;font-weight:800;color:var(--text)">店家任務</div>
+          <div style="font-size:13px;font-weight:900;color:#10b981">+80點</div>
+        </div>
+        <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:8px;padding:7px;text-align:center">
+          <div style="font-size:16px">🤖</div>
+          <div style="font-size:11px;font-weight:800;color:var(--text)">AI任務</div>
+          <div style="font-size:13px;font-weight:900;color:#10b981">+60點</div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px">🔥 連續完成任務額外加成</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--green)">連續3天 +20%</span>
+        <span style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--accent)">連續7天 +50%</span>
+        <span style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--accent2)">連續14天 +100%</span>
+      </div>
+      <div id="streak-status" style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center">計算連續天數中...</div>
     </div>
     <div id="yt-slots-list"></div>
   </div>
@@ -1019,6 +1050,28 @@ async function renderTasks() {
   try {
     const today = todayStr();
     const memberData = await fsGet(`members/${currentUID}`);
+    // 更新樹點顯示
+    const treePoints = (memberData && memberData.treePoints) || 0;
+    const treePtsEl = document.getElementById('tree-pts-display');
+    if (treePtsEl) treePtsEl.innerHTML = `🌳 <span style="color:var(--green)">${treePoints} 點</span>`;
+    // 計算連續天數
+    const completedDays = (memberData && memberData.taskCompletedDays) || {};
+    let streak = 0;
+    let d = new Date(today);
+    for (let i = 0; i < 30; i++) {
+      const ds = d.toISOString().slice(0, 10);
+      if (completedDays[ds]) { streak++; d.setDate(d.getDate() - 1); } else break;
+    }
+    const streakEl = document.getElementById('streak-status');
+    if (streakEl) {
+      let streakMsg = '', streakColor = 'var(--muted)';
+      if (streak === 0) { streakMsg = '尚未開始連續任務，今天完成任務就開始累積！'; }
+      else if (streak < 3) { streakMsg = `🔥 已連續 ${streak} 天！再 ${3-streak} 天達成連續3天 +20%`; streakColor = 'var(--text)'; }
+      else if (streak < 7) { streakMsg = `⚡ 連續 ${streak} 天 +20%！再 ${7-streak} 天達成連續7天 +50%`; streakColor = '#10b981'; }
+      else if (streak < 14) { streakMsg = `🏆 連續 ${streak} 天 +50%！再 ${14-streak} 天達成連續14天 +100%`; streakColor = '#3b82f6'; }
+      else { streakMsg = `👑 連續 ${streak} 天！已達最高加成 +100%，繼續保持！`; streakColor = '#8b5cf6'; }
+      streakEl.innerHTML = `<span style="color:${streakColor};font-weight:700">${streakMsg}</span>`;
+    }
     const ytTasks         = (memberData && memberData.ytTasks)         || {};
     const ytReviews       = (memberData && memberData.ytReviews)       || {};
     const ytRejectReasons = (memberData && memberData.ytRejectReasons) || {};
